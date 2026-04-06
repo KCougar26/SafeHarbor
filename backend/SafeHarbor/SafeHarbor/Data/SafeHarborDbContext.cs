@@ -42,6 +42,7 @@ public class SafeHarborDbContext(DbContextOptions<SafeHarborDbContext> options) 
         modelBuilder.Entity<CaseConference>().HasIndex(x => x.ConferenceDate);
         modelBuilder.Entity<Donor>().HasIndex(x => x.LastActivityAt);
         modelBuilder.Entity<Contribution>().HasIndex(x => x.ContributionDate);
+        modelBuilder.Entity<SocialPostMetric>().HasIndex(x => x.PostedAt);
 
         modelBuilder.Entity<User>().HasIndex(x => x.ExternalId).IsUnique();
         modelBuilder.Entity<Role>().HasIndex(x => x.Name).IsUnique();
@@ -50,6 +51,11 @@ public class SafeHarborDbContext(DbContextOptions<SafeHarborDbContext> options) 
         modelBuilder.Entity<VisitType>().HasIndex(x => x.Code).IsUnique();
         modelBuilder.Entity<ContributionType>().HasIndex(x => x.Code).IsUnique();
         modelBuilder.Entity<StatusState>().HasIndex(x => new { x.Domain, x.Code }).IsUnique();
+
+        // NOTE: Platform/content values are controlled vocab labels entered by admins.
+        // They are intentionally short to keep report groupings stable and typo-resistant.
+        modelBuilder.Entity<SocialPostMetric>().Property(x => x.Platform).HasMaxLength(80);
+        modelBuilder.Entity<SocialPostMetric>().Property(x => x.ContentType).HasMaxLength(80);
 
         modelBuilder.Entity<CaseCategory>().HasData(
             LookupSeeders.CaseCategories.Select(x => new CaseCategory

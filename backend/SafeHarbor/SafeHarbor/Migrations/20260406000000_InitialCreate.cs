@@ -243,11 +243,14 @@ public partial class InitialCreate : Migration
             columns: table => new
             {
                 Id = table.Column<Guid>(type: "TEXT", nullable: false),
-                CampaignId = table.Column<Guid>(type: "TEXT", nullable: false),
-                MetricDate = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
+                CampaignId = table.Column<Guid>(type: "TEXT", nullable: true),
+                PostedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
+                Platform = table.Column<string>(type: "TEXT", maxLength: 80, nullable: false),
+                ContentType = table.Column<string>(type: "TEXT", maxLength: 80, nullable: false),
                 Reach = table.Column<int>(type: "INTEGER", nullable: false),
                 Engagements = table.Column<int>(type: "INTEGER", nullable: false),
-                Clicks = table.Column<int>(type: "INTEGER", nullable: false),
+                AttributedDonationAmount = table.Column<decimal>(type: "TEXT", nullable: true),
+                AttributedDonationCount = table.Column<int>(type: "INTEGER", nullable: true),
                 CreatedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
                 UpdatedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: false),
                 DeletedAt = table.Column<DateTimeOffset>(type: "TEXT", nullable: true),
@@ -256,7 +259,7 @@ public partial class InitialCreate : Migration
             constraints: table =>
             {
                 table.PrimaryKey("PK_SocialPostMetrics", x => x.Id);
-                table.ForeignKey("FK_SocialPostMetrics_Campaigns_CampaignId", x => x.CampaignId, "Campaigns", "Id", onDelete: ReferentialAction.Cascade);
+                table.ForeignKey("FK_SocialPostMetrics_Campaigns_CampaignId", x => x.CampaignId, "Campaigns", "Id", onDelete: ReferentialAction.SetNull);
             });
 
         migrationBuilder.CreateTable(
@@ -494,6 +497,7 @@ public partial class InitialCreate : Migration
         migrationBuilder.CreateIndex(name: "IX_ResidentCases_ResidentUserId", table: "ResidentCases", column: "ResidentUserId");
         migrationBuilder.CreateIndex(name: "IX_Roles_Name", table: "Roles", column: "Name", unique: true);
         migrationBuilder.CreateIndex(name: "IX_SocialPostMetrics_CampaignId", table: "SocialPostMetrics", column: "CampaignId");
+        migrationBuilder.CreateIndex(name: "IX_SocialPostMetrics_PostedAt", table: "SocialPostMetrics", column: "PostedAt");
         migrationBuilder.CreateIndex(name: "IX_StatusStates_Domain_Code", table: "StatusStates", columns: ["Domain", "Code"], unique: true);
         migrationBuilder.CreateIndex(name: "IX_UserRoles_RoleId", table: "UserRoles", column: "RoleId");
         migrationBuilder.CreateIndex(name: "IX_Users_ExternalId", table: "Users", column: "ExternalId", unique: true);
