@@ -71,4 +71,57 @@ public sealed record ReportsAnalyticsResponse(
     IReadOnlyCollection<DonationTrendPoint> DonationTrends,
     IReadOnlyCollection<OutcomeTrendPoint> OutcomeTrends,
     IReadOnlyCollection<SafehouseComparisonItem> SafehouseComparisons,
-    IReadOnlyCollection<ReintegrationRatePoint> ReintegrationRates);
+    IReadOnlyCollection<ReintegrationRatePoint> ReintegrationRates,
+    IReadOnlyCollection<SocialDonationCorrelationPoint> DonationCorrelationByPlatform,
+    IReadOnlyCollection<SocialDonationCorrelationPoint> DonationCorrelationByContentType,
+    IReadOnlyCollection<SocialDonationCorrelationPoint> DonationCorrelationByPostingHour,
+    IReadOnlyCollection<SocialPostDonationInsight> TopAttributedPosts,
+    IReadOnlyCollection<ContentTimingRecommendationCard> Recommendations);
+
+
+public sealed record SocialPostMetricListItem(
+    Guid Id,
+    Guid? CampaignId,
+    DateTimeOffset PostedAt,
+    string Platform,
+    string ContentType,
+    int Reach,
+    int Engagements,
+    decimal? AttributedDonationAmount,
+    int? AttributedDonationCount);
+
+public sealed record CreateSocialPostMetricRequest(
+    Guid? CampaignId,
+    [property: Required] DateTimeOffset PostedAt,
+    [property: Required, StringLength(80, MinimumLength = 2)] string Platform,
+    [property: Required, StringLength(80, MinimumLength = 2)] string ContentType,
+    [property: Range(0, int.MaxValue)] int Reach,
+    [property: Range(0, int.MaxValue)] int Engagements,
+    [property: Range(typeof(decimal), "0", "1000000000")] decimal? AttributedDonationAmount,
+    [property: Range(0, int.MaxValue)] int? AttributedDonationCount);
+
+public sealed record SocialDonationCorrelationPoint(
+    string Group,
+    int Posts,
+    int TotalReach,
+    int TotalEngagements,
+    decimal TotalAttributedDonationAmount,
+    int TotalAttributedDonationCount,
+    decimal DonationsPer1kReach,
+    decimal EngagementRatePercent);
+
+public sealed record SocialPostDonationInsight(
+    Guid PostMetricId,
+    DateTimeOffset PostedAt,
+    string Platform,
+    string ContentType,
+    int Reach,
+    int Engagements,
+    decimal? AttributedDonationAmount,
+    int? AttributedDonationCount,
+    decimal EngagementRatePercent);
+
+public sealed record ContentTimingRecommendationCard(
+    string Title,
+    string Rationale,
+    string Action);
