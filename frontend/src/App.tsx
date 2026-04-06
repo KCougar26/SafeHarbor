@@ -1,56 +1,58 @@
-import './App.css'
-import { privacyPolicyContent } from './content/privacyPolicyContent'
-import { useCookieConsent } from './hooks/useCookieConsent'
+import { NavLink, Outlet } from 'react-router-dom'
+import { CookieConsentBanner } from './components/CookieConsentBanner'
+
+const navigation = [
+  { to: '/', label: 'Home' },
+  { to: '/impact', label: 'Impact Dashboard' },
+  { to: '/login', label: 'Login' },
+  { to: '/privacy', label: 'Privacy' },
+]
 
 function App() {
-  const { hasDecision, state, accept, decline } = useCookieConsent(
-    privacyPolicyContent.updatedOnIso
-  )
-
   return (
-    <main className="layout">
-      <header>
-        <h1>SafeHarbor Public Site</h1>
-        <p>
-          Privacy policy version: <strong>{privacyPolicyContent.updatedOnIso}</strong>
-        </p>
+    <div className="app-shell">
+      <a className="skip-link" href="#main-content">
+        Skip to main content
+      </a>
+
+      <header className="site-header" role="banner">
+        <div className="container nav-container">
+          <div className="brand" aria-label="Safe Harbor">
+            Safe Harbor
+          </div>
+          <nav aria-label="Primary">
+            <ul className="nav-list">
+              {navigation.map((item) => (
+                <li key={item.to}>
+                  <NavLink
+                    to={item.to}
+                    className={({ isActive }) =>
+                      `nav-link${isActive ? ' nav-link-active' : ''}`
+                    }
+                    end={item.to === '/'}
+                  >
+                    {item.label}
+                  </NavLink>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </div>
       </header>
 
-      {!hasDecision && (
-        <section className="consent-banner" aria-live="polite">
-          <h2>Cookie preferences</h2>
-          <p>
-            We use essential cookies for security and optional cookies for analytics.
-            Choose your preference to continue.
-          </p>
-          <div className="actions">
-            <button onClick={accept}>Accept optional cookies</button>
-            <button className="secondary" onClick={decline}>
-              Decline optional cookies
-            </button>
-          </div>
-        </section>
-      )}
+      <main id="main-content" className="container page-content" role="main">
+        <Outlet />
+      </main>
 
-      {hasDecision && state && (
-        <p className="decision">
-          Cookie decision: <strong>{state.decision}</strong> on{' '}
-          {new Date(state.decidedAtIso).toLocaleString()}.
-        </p>
-      )}
+      <footer className="site-footer" role="contentinfo">
+        <div className="container footer-content">
+          <p>© {new Date().getFullYear()} Safe Harbor</p>
+          <p>Anonymized impact insights for responsible care partnerships.</p>
+        </div>
+      </footer>
 
-      <section className="policy">
-        <h2>Privacy policy</h2>
-        {privacyPolicyContent.sections.map((section) => (
-          <article key={section.heading}>
-            <h3>{section.heading}</h3>
-            {section.paragraphs.map((paragraph) => (
-              <p key={paragraph}>{paragraph}</p>
-            ))}
-          </article>
-        ))}
-      </section>
-    </main>
+      <CookieConsentBanner />
+    </div>
   )
 }
 
