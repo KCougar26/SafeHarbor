@@ -33,9 +33,22 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireRole("Admin"));
 });
 
-// TODO: Chad - transition these from Singleton to Scoped now that we have a DbContext
+=======
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() ?? [];
+        policy.WithOrigins(allowedOrigins)
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+// Using Scoped now that we have a real DbContext integrated
 builder.Services.AddScoped<InMemoryDataStore>(); 
 builder.Services.AddScoped<IAuditLogger, AuditLogger>();
+>>>>>>> 1055952cf0593aa6d7cb59113f4108591b1e3ecd
 builder.Services.AddSingleton<IDataRetentionRedactionService, DataRetentionRedactionService>();
 
 builder.Services.AddHealthChecks();
@@ -81,7 +94,13 @@ if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 }
 
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHsts();
+}
+
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+app.UseCors();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
