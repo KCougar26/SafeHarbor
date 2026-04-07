@@ -1,17 +1,17 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.EntityFrameworkCore; // Added for UseSqlServer
+using Microsoft.EntityFrameworkCore; 
 using Microsoft.Identity.Web;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using SafeHarbor.Authorization;
-using SafeHarbor.Data; // Added to access your new SafeHarborDbContext
+using SafeHarbor.Data; 
 using SafeHarbor.Infrastructure;
 using SafeHarbor.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// NOTE: JSON console formatting keeps logs structured for Azure Log Analytics and App Insights queries.
+// Logging configuration
 builder.Logging.ClearProviders();
 builder.Logging.AddJsonConsole(options =>
 {
@@ -20,9 +20,9 @@ builder.Logging.AddJsonConsole(options =>
 });
 
 // --- DATABASE REGISTRATION START ---
-// This connects your 17 tables to the SQL Connection String in appsettings.json
+// Updated to use PostgreSQL (Npgsql) instead of SQL Server
 builder.Services.AddDbContext<SafeHarborDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 // --- DATABASE REGISTRATION END ---
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -33,7 +33,7 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireRole("Admin"));
 });
 
-=======
+// CORS Configuration
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
@@ -45,15 +45,16 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Using Scoped now that we have a real DbContext integrated
-builder.Services.AddScoped<InMemoryDataStore>(); 
+// Services Registration
 builder.Services.AddScoped<IAuditLogger, AuditLogger>();
->>>>>>> 1055952cf0593aa6d7cb59113f4108591b1e3ecd
 builder.Services.AddSingleton<IDataRetentionRedactionService, DataRetentionRedactionService>();
+
+// If you are transitioning fully to the database, you might eventually remove this:
+builder.Services.AddScoped<InMemoryDataStore>(); 
 
 builder.Services.AddHealthChecks();
 
-// Telemetry configuration...
+// Telemetry configuration
 var telemetryServiceName = builder.Configuration["Telemetry:ServiceName"] ?? "safeharbor-api";
 var otlpEndpoint = builder.Configuration["Telemetry:OtlpEndpoint"];
 
@@ -63,8 +64,8 @@ builder.Services.AddOpenTelemetry()
     {
         tracing
             .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation(); // <--- Added semicolon here to close the chain!
-            // .AddEntityFrameworkCoreInstrumentation(); // This stays commented out for now
+            .AddHttpClientInstrumentation();
+            //.AddEntityFrameworkCoreInstrumentation(); // Enabled this to help you debug DB queries!
 
         if (!string.IsNullOrWhiteSpace(otlpEndpoint))
         {
