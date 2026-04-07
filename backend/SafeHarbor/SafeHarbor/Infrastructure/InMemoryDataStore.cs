@@ -1,4 +1,5 @@
 using SafeHarbor.Models;
+using SafeHarbor.Models.Entities;
 
 namespace SafeHarbor.Infrastructure;
 
