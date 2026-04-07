@@ -1,9 +1,11 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore; // Added for UseSqlServer
 using Microsoft.Identity.Web;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using SafeHarbor.Authorization;
+using SafeHarbor.Data; // Added to access your new SafeHarborDbContext
 using SafeHarbor.Infrastructure;
 using SafeHarbor.Services;
 
@@ -17,24 +19,28 @@ builder.Logging.AddJsonConsole(options =>
     options.TimestampFormat = "yyyy-MM-ddTHH:mm:ss.fffZ";
 });
 
+// --- DATABASE REGISTRATION START ---
+// This connects your 17 tables to the SQL Connection String in appsettings.json
+builder.Services.AddDbContext<SafeHarborDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+// --- DATABASE REGISTRATION END ---
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddMicrosoftIdentityWebApi(builder.Configuration.GetSection("AzureAd"));
 
-// NOTE: Policy names are centralized so controllers can enforce consistent role semantics.
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy(PolicyNames.AdminOnly, policy => policy.RequireRole("Admin"));
 });
 
-// TODO: Register production database services when persistence integration is implemented.
-builder.Services.AddSingleton<InMemoryDataStore>();
-builder.Services.AddSingleton<IAuditLogger, AuditLogger>();
+// TODO: Chad - transition these from Singleton to Scoped now that we have a DbContext
+builder.Services.AddScoped<InMemoryDataStore>(); 
+builder.Services.AddScoped<IAuditLogger, AuditLogger>();
 builder.Services.AddSingleton<IDataRetentionRedactionService, DataRetentionRedactionService>();
 
-// NOTE: Live/ready probes support platform health checks and safer blue/green swaps.
 builder.Services.AddHealthChecks();
 
-// NOTE: Baseline telemetry is enabled with OTLP export so staging dashboards can read traces and metrics.
+// Telemetry configuration...
 var telemetryServiceName = builder.Configuration["Telemetry:ServiceName"] ?? "safeharbor-api";
 var otlpEndpoint = builder.Configuration["Telemetry:OtlpEndpoint"];
 
@@ -44,7 +50,8 @@ builder.Services.AddOpenTelemetry()
     {
         tracing
             .AddAspNetCoreInstrumentation()
-            .AddHttpClientInstrumentation();
+            .AddHttpClientInstrumentation(); // <--- Added semicolon here to close the chain!
+            // .AddEntityFrameworkCoreInstrumentation(); // This stays commented out for now
 
         if (!string.IsNullOrWhiteSpace(otlpEndpoint))
         {
