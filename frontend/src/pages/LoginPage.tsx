@@ -106,7 +106,7 @@ export function LoginPage() {
     setError(null)
 
     if (!IDENTITY_PROVIDER_CONFIGURED) {
-      setError('Identity provider settings are missing. Configure frontend/.env.local or use Development role simulation below.')
+      setError('Identity provider settings are missing. Configure frontend/.env.local or use Local development sign-in below.')
       return
     }
 
@@ -156,11 +156,11 @@ export function LoginPage() {
         {DEV_ROLE_SIMULATION_ENABLED && (
           <>
             {/*
-              Development-only login simulation exists to unblock local route testing when
-              an IdP tenant is unavailable in offline/local environments.
+              Local-only sign-in exists to unblock route testing when
+              an external identity provider tenant is unavailable in offline/local environments.
             */}
             <hr aria-hidden="true" />
-            <p className="caption">Development role simulation (VITE_ENABLE_DEV_ROLE_SIMULATION=true)</p>
+            <p className="caption">Local development sign-in (enabled with VITE_ENABLE_DEV_ROLE_SIMULATION=true)</p>
 
             <form onSubmit={handleDevelopmentSubmit} className="auth-form">
               <label htmlFor="email">Work email</label>
