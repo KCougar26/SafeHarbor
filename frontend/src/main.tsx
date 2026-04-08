@@ -15,8 +15,11 @@ import { CaseloadInventoryPage } from './pages/app/CaseloadInventoryPage'
 import { ProcessRecordingPage } from './pages/app/ProcessRecordingPage'
 import { HomeVisitationConferencesPage } from './pages/app/HomeVisitationConferencesPage'
 import { ReportsAnalyticsPage } from './pages/app/ReportsAnalyticsPage'
+import { YourDonationsPage } from './pages/donor/YourDonationsPage'
+import { AdminDonorAnalyticsPage } from './pages/app/AdminDonorAnalyticsPage'
+import { DonatePage } from './pages/DonatePage'
 
-const router = createBrowserRouter([
+export const appRoutes = [
   {
     path: '/',
     element: <App />,
@@ -24,13 +27,29 @@ const router = createBrowserRouter([
       { index: true, element: <HomePage /> },
       { path: 'impact', element: <ImpactDashboardPage /> },
       { path: 'login', element: <LoginPage /> },
-      { path: 'privacy', element: <PrivacyPage /> },
+      // ADR authorization matrix decision:
+      // keep /donor/dashboard isolated as donor-role-only, not general authenticated access.
+      {
+        path: 'donor',
+        element: <ProtectedRoute allowedRoles={['Donor']} />,
+        children: [{ path: 'dashboard', element: <YourDonationsPage /> }],
+      },
+      // All non-public/non-donor routes are restricted to staff roles.
+      {
+        element: <ProtectedRoute allowedRoles={['Admin', 'SocialWorker']} />,
+        children: [
+          { path: 'privacy', element: <PrivacyPage /> },
+          { path: 'donate', element: <DonatePage /> },
+        ],
+      },
       {
         path: 'app',
-        element: <ProtectedRoute />,
+        // Restrict /app/* to staff roles only. Donors are redirected to / if they try to visit staff routes.
+        element: <ProtectedRoute allowedRoles={['Admin', 'SocialWorker']} />,
         children: [
           { path: 'dashboard', element: <AdminDashboardPage /> },
           { path: 'donors', element: <DonorsContributionsPage /> },
+          { path: 'donor-analytics', element: <AdminDonorAnalyticsPage /> },
           { path: 'caseload', element: <CaseloadInventoryPage /> },
           {
             path: 'process-recording',
@@ -43,12 +62,18 @@ const router = createBrowserRouter([
       },
     ],
   },
-])
+]
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <AuthProvider>
-      <RouterProvider router={router} />
-    </AuthProvider>
-  </StrictMode>,
-)
+export const router = createBrowserRouter(appRoutes)
+
+const rootElement = document.getElementById('root')
+
+if (rootElement) {
+  createRoot(rootElement).render(
+    <StrictMode>
+      <AuthProvider>
+        <RouterProvider router={router} />
+      </AuthProvider>
+    </StrictMode>,
+  )
+}
