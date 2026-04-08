@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react'
 import { Link, NavLink, Outlet } from 'react-router-dom'
 import { CookieConsentBanner } from './components/CookieConsentBanner'
 import { useAuth } from './auth/AuthContext'
-import logo from './assets/logo.png?url';
 
 function App() {
   const { session, logout } = useAuth()
