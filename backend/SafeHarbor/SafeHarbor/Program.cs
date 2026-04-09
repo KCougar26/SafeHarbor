@@ -249,14 +249,6 @@ if (useInMemoryPersistence)
     DonorDashboardSeeder.Seed(app.Services.GetRequiredService<InMemoryDataStore>());
 }
 
-// Apply any pending EF Core migrations automatically so the database schema stays
-// up to date without requiring a manual migration step on each deployment.
-using (var migrationScope = app.Services.CreateScope())
-{
-    var db = migrationScope.ServiceProvider.GetRequiredService<SafeHarborDbContext>();
-    await db.Database.MigrateAsync();
-}
-
 if (localAuthEnabled)
 {
     await IdentityDevelopmentSeeder.SeedAsync(app.Services);

@@ -13,6 +13,12 @@ namespace SafeHarbor.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // All Identity tables were already created in the SyncModelChanges migration.
+            // This migration is intentionally a no-op kept only for history continuity.
+        }
+
+        protected override void _OriginalUp(MigrationBuilder migrationBuilder)
+        {
             migrationBuilder.CreateTable(
                 name: "AspNetRoles",
                 columns: table => new
@@ -198,13 +204,7 @@ namespace SafeHarbor.Migrations
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(name: "AspNetRoleClaims");
-            migrationBuilder.DropTable(name: "AspNetUserClaims");
-            migrationBuilder.DropTable(name: "AspNetUserLogins");
-            migrationBuilder.DropTable(name: "AspNetUserRoles");
-            migrationBuilder.DropTable(name: "AspNetUserTokens");
-            migrationBuilder.DropTable(name: "AspNetRoles");
-            migrationBuilder.DropTable(name: "AspNetUsers");
+            // No-op — nothing was created in Up().
         }
     }
 }
