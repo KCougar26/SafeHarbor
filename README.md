@@ -31,6 +31,35 @@ This repository now includes:
 - **Non-technical admin SOPs** in `docs/admin/non-technical-admin-guide.md`.
 - **Starter telemetry dashboard JSON** in `infra/azure/staging-telemetry-dashboard.json`.
 
+
+## Secrets configuration (local + cloud)
+
+Tracked config files (`appsettings.json` and `appsettings.Development.json`) now contain placeholders only for sensitive values. Set real secrets in one of the supported secret providers below.
+
+| Source | When to use | Keys |
+|---|---|---|
+| Environment variables | CI/CD, containers, quick local overrides | `ConnectionStrings__DefaultConnection`, `LocalAuth__SigningKey`, `KeyVault__VaultUri` |
+| .NET user-secrets | Local development on trusted machines | `ConnectionStrings:DefaultConnection`, `LocalAuth:SigningKey` |
+| Azure Key Vault | Shared non-local environments | `ConnectionStrings--DefaultConnection`, `LocalAuth--SigningKey` |
+
+### Local bootstrap
+
+1. Copy `backend/SafeHarbor/.env.example` to `.env` (or export equivalent shell variables).
+2. Prefer `dotnet user-secrets` for local-only secrets:
+   - `dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<value>" --project backend/SafeHarbor/SafeHarbor/SafeHarbor.csproj`
+   - `dotnet user-secrets set "LocalAuth:SigningKey" "<32+ char key>" --project backend/SafeHarbor/SafeHarbor/SafeHarbor.csproj`
+3. For cloud, set `KeyVault:VaultUri` and store secret values in Azure Key Vault.
+
+### Credential/signing-key rotation checklist
+
+If credentials or signing keys were ever committed, rotate immediately:
+
+1. Rotate the PostgreSQL user password/connection string at the database server.
+2. Rotate `LocalAuth:SigningKey` (new random 32+ char value) in user-secrets, CI secret store, and Key Vault.
+3. Redeploy/restart workloads so old secrets are no longer active in memory.
+4. Revoke and replace any dependent app registrations or tokens if they used the exposed secret.
+5. Validate startup/auth flows after rotation and remove stale values from local machines.
+
 ## Content Security Policy (CSP) allowlist
 
 The API now emits a `Content-Security-Policy` header with strict defaults to reduce cross-site scripting risk while preserving required integrations:

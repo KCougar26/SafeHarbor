@@ -1,3 +1,4 @@
+using Azure.Identity;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Identity;
@@ -18,6 +19,14 @@ using SafeHarbor.Services.DonorImpact;
 using SafeHarbor.Services.Public;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// NOTE: ASP.NET's default host builder already loads appsettings + environment variables + user-secrets
+// (in Development). We add optional Azure Key Vault on top so deployed environments can avoid file-based secrets.
+var keyVaultUri = builder.Configuration["KeyVault:VaultUri"];
+if (!string.IsNullOrWhiteSpace(keyVaultUri))
+{
+    builder.Configuration.AddAzureKeyVault(new Uri(keyVaultUri), new DefaultAzureCredential());
+}
 
 // Logging configuration
 builder.Logging.ClearProviders();
