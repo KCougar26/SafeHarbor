@@ -70,8 +70,6 @@ public sealed class LocalAuthController(
     {
         if (!IsLocalAuthEnabled())
         {
-            // NOTE: This endpoint is intentionally disabled outside local-development auth mode
-            // so production/staging continue using external identity provider sign-in only.
             return NotFound(new { error = "Local authentication is disabled." });
         }
 
